@@ -2,105 +2,105 @@ import psycopg2
 # Configurações do banco
 try:
     conn = psycopg2.connect(
-        dbname="expense_test",
-        user="postgres",
-        password="Aranha4667@",
+        dbname="database_name",
+        user="user_name",
+        password="password",
         host="localhost",
         port="5432",
         client_encoding='utf-8'
     )
     cursor = conn.cursor()
 except Exception as e:
-    print("Erro ao conectar no banco:", e)
+    print("Error to connect database:", e)
     sys.exit(1)
 
 
-def mostrar_menu():
-    print("\n=== CALCULADORA DE GASTOS MENSAIS ===")
-    print("1. Adicionar gasto")
-    print("2. Ver resumo de gastos")
-    print("3. Remover gasto")
-    print("4. Sair")
+def show_menu():
+    print("\n=== MONTHLY EXPENSES CALCULATOR ===")
+    print("1. Add expense")
+    print("2. View expense summary")
+    print("3. Remove expense")
+    print("4. Exit")
 
-def adicionar_gasto():
-    categoria = input("Digite a categoria do gasto: ").strip().lower()
+def add_expense():
+    category = input("Enter the expense category: ").strip().lower()
     try:
-        valor = float(input("Digite o valor do gasto: R$ "))
+        amount = float(input("Enter the expense amount: $ "))
     except ValueError:
-        print("⚠️ Valor inválido.")
+        print("⚠️ Invalid amount.")
         return
 
     try:
-        cursor.execute("INSERT INTO gastos (categoria, valor) VALUES (%s, %s)", (categoria, valor))
+        cursor.execute("INSERT INTO expenses (category, amount) VALUES (%s, %s)", (category, amount))
         conn.commit()
-        print("✅ Gasto adicionado com sucesso!")
+        print("✅ Expense added successfully!")
     except Exception as e:
-        print("Erro ao adicionar gasto:", e)
+        print("Error adding expense:", e)
         conn.rollback()
 
-def ver_resumo():
+def view_summary():
     try:
-        cursor.execute("SELECT categoria, SUM(valor) FROM gastos GROUP BY categoria")
-        resultados = cursor.fetchall()
+        cursor.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
+        results = cursor.fetchall()
 
-        if not resultados:
-            print("📭 Nenhum gasto registrado.")
+        if not results:
+            print("📭 No expenses recorded.")
             return
 
         total = 0
-        print("\n--- RESUMO DE GASTOS ---")
-        for categoria, soma in resultados:
-            print(f"{categoria.title()}: R$ {soma:.2f}")
-            total += soma
-        print(f"\n💰 Total geral: R$ {total:.2f}")
+        print("\n--- EXPENSE SUMMARY ---")
+        for category, total_amount in results:
+            print(f"{category.title()}: $ {total_amount:.2f}")
+            total += total_amount
+        print(f"\n💰 Total: $ {total:.2f}")
     except Exception as e:
-        print("Erro ao ver resumo:", e)
+        print("Error viewing summary:", e)
 
-def remover_gasto():
-    ver_gastos()
+def remove_expense():
+    view_expenses()
     try:
-        id_gasto = int(input("Digite o ID do gasto que deseja remover: "))
-        cursor.execute("DELETE FROM gastos WHERE id = %s", (id_gasto,))
+        expense_id = int(input("Enter the ID of the expense to remove: "))
+        cursor.execute("DELETE FROM expenses WHERE id = %s", (expense_id,))
         conn.commit()
-        print("🗑️ Gasto removido com sucesso!")
+        print("🗑️ Expense removed successfully!")
     except ValueError:
-        print("⚠️ ID inválido.")
+        print("⚠️ Invalid ID.")
     except Exception as e:
-        print("Erro ao remover gasto:", e)
+        print("Error removing expense:", e)
         conn.rollback()
 
-def ver_gastos():
+def view_expenses():
     try:
-        cursor.execute("SELECT id, categoria, valor FROM gastos")
-        registros = cursor.fetchall()
-        if not registros:
-            print("📭 Nenhum gasto registrado.")
+        cursor.execute("SELECT id, category, amount FROM expenses")
+        records = cursor.fetchall()
+        if not records:
+            print("📭 No expenses recorded.")
             return
-        print("\n--- LISTA DE GASTOS ---")
-        for id, categoria, valor in registros:
-            print(f"ID: {id} | {categoria.title()} - R$ {valor:.2f}")
+        print("\n--- EXPENSE LIST ---")
+        for id, category, amount in records:
+            print(f"ID: {id} | {category.title()} - $ {amount:.2f}")
     except Exception as e:
-        print("Erro ao listar gastos:", e)
+        print("Error listing expenses:", e)
 
 def main():
     try:
         while True:
-            mostrar_menu()
-            opcao = input("Escolha uma opção: ")
+            show_menu()
+            option = input("Choose an option: ")
 
-            if opcao == '1':
-                adicionar_gasto()
-            elif opcao == '2':
-                ver_resumo()
-            elif opcao == '3':
-                remover_gasto()
-            elif opcao == '4':
-                print("👋 Saindo...")
+            if option == '1':
+                add_expense()
+            elif option == '2':
+                view_summary()
+            elif option == '3':
+                remove_expense()
+            elif option == '4':
+                print("👋 Exiting...")
                 break
             else:
-                print("❌ Opção inválida.")
+                print("❌ Invalid option.")
     except KeyboardInterrupt:
-        print("\n👋 Programa interrompido pelo usuário.")
+        print("\n👋 Program interrupted by user.")
     finally:
         cursor.close()
         conn.close()
